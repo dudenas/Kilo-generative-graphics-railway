@@ -16,8 +16,8 @@ COPY package*.json ./
 RUN npm install
 
 # Copy Flask server
-COPY ../KILO-image_to_vid /app/KILO-image_to_vid
-WORKDIR /app/KILO-image_to_vid
+COPY flask-server /app/flask-server
+WORKDIR /app/flask-server
 RUN pip3 install -r requirements.txt
 
 # Copy frontend files
