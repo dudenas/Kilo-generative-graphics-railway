@@ -234,9 +234,14 @@ def flask_status():
 @app.route('/api/progress')
 def get_progress():
     """Get current progress"""
-    global conversion_progress
-    with progress_lock:
-        return jsonify({'progress': conversion_progress})
+    try:
+        global conversion_progress
+        with progress_lock:
+            return jsonify({'progress': conversion_progress})
+    except Exception as e:
+        logger.error(f"Error in get_progress: {str(e)}")
+        # Return a safe default if there's any issue
+        return jsonify({'progress': 0})
 
 @app.route('/api/convert', methods=['POST'])
 def convert():
