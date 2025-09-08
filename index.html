@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KILO Graphics Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+    <link rel="stylesheet" href="style.css?v=1.0.1">
+</head>
+
+<body>
+    <main>
+        <!-- Logo Loader Animation -->
+        <div id="logo-loader">
+            <img id="logo-loader-image" src="resources/logo_loader/logo_loader_00000.png" alt="Loading...">
+        </div>
+
+        <!-- About button in top right corner -->
+        <div id="about-button" class="control-title">About</div>
+
+        <!-- About Modal -->
+        <div id="about-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-close"></div>
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h1 class="modal-title">KILO IS A<br>THOUSAND</h1>
+
+                    <h3>Modes:</h3>
+                    <div class="modes-guide">
+                        <p><strong>Pattern</strong><br>Generates procedural graphics using noise algorithms. Scale
+                            controls pattern detail, animation creates flowing motion.</p>
+                        <p><strong>Icon</strong><br>Uses uploaded images as templates. Graphics appear only in
+                            non-transparent, non-white areas of your image.</p>
+                        <p><strong>Image</strong><br>Creates graphics based on image brightness. Dark areas become dense
+                            patterns, light areas remain sparse.</p>
+                    </div>
+
+                    <h3>Controls Guide:</h3>
+                    <div class="controls-tabs">
+                        <div class="tab-buttons">
+                            <button class="tab-button active" data-tab="scaling">Scaling Controls</button>
+                            <button class="tab-button" data-tab="pattern">Pattern Settings</button>
+                            <button class="tab-button" data-tab="image">Image Settings</button>
+                        </div>
+
+                        <div class="tab-content active" id="scaling-tab">
+                            <p><strong>Zoom</strong> — Controls the size of individual graphic elements. Lower values
+                                create smaller, more detailed patterns with more elements visible. Higher values create
+                                larger, more prominent shapes with fewer elements on screen.</p>
+                            <p><strong>Threshold</strong> — Sets the minimum visibility point for graphics. Values below
+                                this threshold become invisible, creating empty space. Lower values show more graphics;
+                                higher values create more sparse, selective patterns by hiding weaker elements.</p>
+                            <p><strong>Upper Threshold</strong> — Defines the point where graphics reach maximum
+                                height/prominence. Elements above this value appear at full scale. Works together with
+                                Threshold to create a range where graphics gradually scale between minimum and maximum
+                                visibility.</p>
+                            <p><strong>Height Steps</strong> — Controls how many distinct height levels graphics can
+                                have. Lower values create simpler, more uniform patterns with fewer variations. Higher
+                                values allow for more complex, nuanced height variations in the generated graphics.</p>
+                        </div>
+
+                        <div class="tab-content" id="pattern-tab">
+                            <p><strong>Scale</strong> — Adjusts the zoom level of the procedural noise pattern. Lower
+                                values create zoomed-in views showing larger, blob-like shapes with less detail. Higher
+                                values zoom out to reveal more intricate, fine-detailed patterns with smaller elements.
+                            </p>
+                            <p><strong>Animation</strong> — Enables or disables animated pattern movement. When active,
+                                patterns flow and evolve over time, creating dynamic visual effects perfect for video
+                                exports.</p>
+                            <p><strong>Animation Length</strong> — Sets the duration of one complete animation loop
+                                cycle. Shorter values create quicker loops that repeat more frequently. Longer values
+                                create extended loops before the pattern repeats, allowing for more variation within
+                                each cycle.</p>
+                            <p><strong>Animation Speed</strong> — Controls how fast patterns change and move. Lower
+                                values create slow, meditative motion. Higher values produce rapid, energetic
+                                transformations.</p>
+                        </div>
+
+                        <div class="tab-content" id="image-tab">
+                            <p><strong>Brightness</strong> — Adjusts the overall brightness of the uploaded image before
+                                processing. Negative values darken the image, positive values brighten it, affecting
+                                which areas become visible graphics.</p>
+                            <p><strong>Contrast</strong> — Controls the difference between light and dark areas. Lower
+                                values create softer, more uniform results. Higher values increase dramatic differences
+                                between visible and hidden elements.</p>
+                            <p><strong>Invert Brightness</strong> — Reverses the brightness mapping so that dark areas
+                                of your image become prominent graphics, and light areas become empty space. Useful for
+                                creating negative-style effects.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance stats in top right corner -->
+        <div id="performance-stats">
+            <div class="stats-row">
+                <span class="stat-label">Total:</span>
+                <span id="total-rectangles">0</span>
+            </div>
+            <div class="stats-row">
+                <span class="stat-label">Visible:</span>
+                <span id="visible-rectangles">0</span>
+            </div>
+            <div class="stats-row">
+                <span class="stat-label">Non-Zero:</span>
+                <span id="nonzero-rectangles">0</span>
+            </div>
+            <div class="stats-row">
+                <span class="stat-label">FPS:</span>
+                <span id="fps">60</span>
+            </div>
+        </div>
+
+        <div id="content-container">
+            <div id="left-panel">
+                <div id="logo-container">
+                    <img src="resources/Kilo_Ventures_Logotype_Black.svg" alt="Kilo Ventures" id="kilo-logo">
+                </div>
+                <div id="mode-selector">
+                    <div class="mode-option">
+                        <input type="radio" id="noise-mode" name="mode" value="noise" checked>
+                        <label for="noise-mode">Pattern</label>
+                    </div>
+                    <div class="mode-option">
+                        <input type="radio" id="icon-mode" name="mode" value="icon">
+                        <label for="icon-mode">Icon</label>
+                    </div>
+                    <div class="mode-option">
+                        <input type="radio" id="brightness-mode" name="mode" value="brightness">
+                        <label for="brightness-mode">Image</label>
+                    </div>
+                </div>
+
+                <div id="left-panel-content">
+                    <div id="shared-image-uploader">
+                        <div class="upload-section">
+                            <input type="file" id="shared-image-file-input" accept="image/*" style="display: none;">
+                            <button id="shared-image-upload-button" class="upload-button">Choose Image</button>
+                            <div class="image-preview" id="shared-image-preview" style="display: none;">
+                                <img id="shared-image-preview-img" class="icon-preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="shared-controls">
+                        <h3>Scaling</h3>
+                        <div class="control-row">
+                            <label class="control-label">Zoom</label>
+                            <input type="range" id="global-zoom-slider" min="0.05" max="0.3" step="0.01" value="0.2">
+                            <span class="control-value" id="global-zoom-value">0.2</span>
+                        </div>
+                        <div class="control-row">
+                            <label class="control-label">Threshold</label>
+                            <input type="range" id="shared-threshold-slider" min="0" max="1" step="0.01" value="0.5">
+                            <span class="control-value" id="shared-threshold-value">0.5</span>
+                        </div>
+                        <div class="control-row">
+                            <label class="control-label">Upper Threshold</label>
+                            <input type="range" id="shared-upper-threshold-slider" min="0" max="1" step="0.01"
+                                value="0.7">
+                            <span class="control-value" id="shared-upper-threshold-value">0.7</span>
+                        </div>
+                        <div class="control-row">
+                            <label class="control-label">Height Steps</label>
+                            <input type="range" id="shared-height-steps-slider" min="1" max="10" step="1" value="2">
+                            <span class="control-value" id="shared-height-steps-value">2</span>
+                        </div>
+                    </div>
+
+                    <div id="color-palette-controls">
+                        <h3>Colours</h3>
+                        <div id="color-palette-container">
+                            <!-- Color swatches will be generated by JavaScript -->
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+
+                </div>
+
+                <div id="export-controls">
+                    <h3>Export</h3>
+                    <div class="export-section">
+                        <button id="svg-export-button" class="export-button">
+                            SVG
+                        </button>
+                    </div>
+
+                    <div class="export-section">
+                        <div class="png-controls">
+                            <label for="png-resolution-select" class="resolution-label">Resolution</label>
+                            <select id="png-resolution-select" class="resolution-select">
+                                <option value="1">1x (Standard)</option>
+                                <option value="2" selected>2x (High)</option>
+                                <option value="3">3x (Very High)</option>
+                                <option value="4">4x (Ultra)</option>
+                                <option value="5">5x (Maximum)</option>
+                            </select>
+                        </div>
+                        <div class="export-buttons-row">
+                            <button id="png-export-button" class="export-button">
+                                PNG
+                            </button>
+                            <button id="png-sequence-export-button" class="export-button">
+                                PNG Sequence
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="export-section">
+                        <div class="export-buttons-row">
+                            <button id="video-export-button" class="export-button">
+                                Video
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="canvas-area">
+                <div id="sketch-container"></div>
+            </div>
+        </div>
+
+        <!-- Right panel for mode-specific settings -->
+        <div id="right-panel">
+            <div id="noise-controls">
+                <h3>Pattern Settings</h3>
+                <div class="control-row">
+                    <label class="control-label">Scale</label>
+                    <input type="range" id="scale-slider" min="0.003" max="0.03" step="0.001" value="0.01">
+                    <span class="control-value" id="scale-value">0.01</span>
+                </div>
+                <div class="control-row toggle-row">
+                    <label class="control-label">Animation</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="animation-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="control-row">
+                    <label class="control-label">Animation Length</label>
+                    <input type="range" id="animation-length-slider" min="300" max="900" step="30" value="300">
+                    <span class="control-value" id="animation-length-value">300</span>
+                </div>
+                <div class="control-row">
+                    <label class="control-label">Animation Speed</label>
+                    <input type="range" id="animation-speed-slider" min="0.25" max="3.0" step="0.25" value="1.0">
+                    <span class="control-value" id="animation-speed-value">1.0</span>
+                </div>
+            </div>
+
+            <div id="brightness-controls" style="display: none;">
+                <h3>Image Settings</h3>
+                <div class="control-row">
+                    <label class="control-label">Brightness</label>
+                    <input type="range" id="brightness-adjustment-slider" min="-1" max="1" step="0.1" value="0">
+                    <span class="control-value" id="brightness-adjustment-value">0</span>
+                </div>
+                <div class="control-row">
+                    <label class="control-label">Contrast</label>
+                    <input type="range" id="brightness-contrast-slider" min="0.5" max="3" step="0.1" value="1">
+                    <span class="control-value" id="brightness-contrast-value">1</span>
+                </div>
+                <div class="control-row toggle-row">
+                    <label class="control-label">Invert Brightness</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="brightness-invert-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+    <!-- OpenSimplex Noise Library -->
+    <script src="js/libs/OpenSimplexNoise.js?v=1.0.1"></script>
+    <!-- p5.svg Library -->
+    <script src="https://unpkg.com/p5.js-svg@1.6.0"></script>
+
+
+    <!-- Configuration -->
+    <script src="js/config/constants.js?v=1.0.1"></script>
+    <script src="js/config/grid-config.js?v=1.0.1"></script>
+    <script src="js/config/noise-config.js?v=1.0.1"></script>
+
+
+    <!-- Math modules -->
+    <script src="js/math/ZoomCalculator.js?v=1.0.1"></script>
+    <script src="js/math/GridCalculator.js?v=1.0.1"></script>
+    <script src="js/math/BoundsChecker.js?v=1.0.1"></script>
+    <script src="js/math/NoiseCalculator.js?v=1.0.1"></script>
+
+    <!-- Core classes -->
+    <script src="js/core/Shape.js?v=1.0.1"></script>
+    <script src="js/core/Rectangle.js?v=1.0.1"></script>
+    <script src="js/core/Grid.js?v=1.0.1"></script>
+
+    <!-- Image modules -->
+    <script src="js/image/ImageProcessor.js?v=1.0.1"></script>
+    <script src="js/image/BrightnessImageProcessor.js?v=1.0.1"></script>
+
+    <!-- UI modules -->
+    <script src="js/ui/LogoLoader.js?v=1.0.1"></script>
+    <script src="js/ui/AboutModal.js?v=1.0.1"></script>
+    <script src="js/ui/PerformanceStats.js?v=1.0.1"></script>
+    <script src="js/ui/NoiseControls.js?v=1"></script>
+    <script src="js/ui/ModeSelector.js?v=1.0.1"></script>
+    <script src="js/ui/SharedImageUploader.js?v=1.0.1"></script>
+    <script src="js/ui/BrightnessControls.js?v=1.0.1"></script>
+    <script src="js/ui/GlobalControls.js?v=1.0.1"></script>
+    <script src="js/ui/SharedControls.js?v=1.0.1"></script>
+    <script src="js/ui/ColorPalette.js?v=1.0.1"></script>
+    <script src="js/ui/DisplayManager.js?v=1.0.1"></script>
+    <script src="js/ui/SVGExportManager.js?v=1.0.1"></script>
+
+    <!-- Main application -->
+    <script src="sketch.js?v=1.0.1"></script>
+</body>
+
+</html>
