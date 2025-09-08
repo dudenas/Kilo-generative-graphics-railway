@@ -26,5 +26,9 @@ COPY . .
 # Expose ports
 EXPOSE 3000 8080
 
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Start the application
-CMD ["npm", "start"]
+CMD ["/app/start.sh"]

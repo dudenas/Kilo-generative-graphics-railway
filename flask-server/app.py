@@ -330,8 +330,13 @@ def handler(request):
     return app(request.environ, request.start_response)
 
 if __name__ == '__main__':
+    # Use Railway's PORT if available, otherwise default to 8080
     port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_ENV') == 'development'
+    
+    # Log the port we're trying to use
+    logger.info(f"Attempting to start Flask server on port {port}")
+    logger.info(f"Environment PORT variable: {os.environ.get('PORT', 'Not set')}")
     
     logger.info(f"=== Starting PNG to Video Converter ===")
     logger.info(f"Version: {APP_VERSION}")

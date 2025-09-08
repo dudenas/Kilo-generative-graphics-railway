@@ -109,16 +109,34 @@ function startFlaskServer() {
                 throw new Error('Flask app.py not found at: ' + appPath);
             }
 
-            // Start Flask server
-            const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+            // Start Flask server with more robust Python detection
+            let pythonCmd = 'python3';
+            
+            // Try to find Python
+            try {
+                const { execSync } = require('child_process');
+                execSync('python3 --version', { stdio: 'pipe' });
+                pythonCmd = 'python3';
+            } catch (e) {
+                try {
+                    execSync('python --version', { stdio: 'pipe' });
+                    pythonCmd = 'python';
+                } catch (e2) {
+                    throw new Error('Python not found. Please install Python 3.');
+                }
+            }
+            
+            console.log(`Using Python command: ${pythonCmd}`);
 
             flaskProcess = spawn(pythonCmd, [appPath], {
                 cwd: flaskPath,
                 env: {
                     ...process.env,
                     PORT: FLASK_PORT.toString(),
-                    FLASK_ENV: 'production'
-                }
+                    FLASK_ENV: 'production',
+                    PYTHONPATH: flaskPath
+                },
+                stdio: ['pipe', 'pipe', 'pipe']
             });
 
             flaskProcess.stdout.on('data', (data) => {
