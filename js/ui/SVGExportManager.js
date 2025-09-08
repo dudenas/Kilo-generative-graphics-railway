@@ -437,21 +437,19 @@ class SVGExportManager {
         this.showOverlay();
         this.setButtonActive('video-export-button', true);
 
-        // Check if Vercel API is available
+        // Check if video processing server is available
         const serverRunning = await this.checkFlaskServer();
         if (!serverRunning) {
-            const startServer = confirm(`Video conversion API is not responding. 
+            const startServer = confirm(`Video conversion server is not responding. 
 
-Would you like to try connecting?
+Would you like to try starting the server?
 
 This will:
-1. Connect to the Vercel serverless API
+1. Start the video processing server
 2. Capture PNG frames from your animation
-3. Attempt video conversion (may have limitations)
+3. Convert frames to MP4 video
 
-Note: Full video processing may not work on Vercel due to FFmpeg limitations.
-
-Click OK to try, or Cancel to use PNG Sequence export instead.`);
+Click OK to start server, or Cancel to use PNG Sequence export instead.`);
 
             if (startServer) {
                 await this.startFlaskServer();
@@ -679,7 +677,7 @@ Click OK to try, or Cancel to use PNG Sequence export instead.`);
         console.log('PNG frame capture completed, sending to server...');
     }
 
-    // Check if Vercel API is working
+    // Check if video processing server is working
     async checkFlaskServer() {
         try {
             const response = await fetch('/api/flask-status', {
@@ -687,26 +685,26 @@ Click OK to try, or Cancel to use PNG Sequence export instead.`);
             });
             if (response.ok) {
                 const data = await response.json();
-                console.log('Vercel API status:', data);
+                console.log('Video server status:', data);
                 return true;
             }
             return false;
         } catch (error) {
-            console.log('Vercel API not responding:', error.message);
+            console.log('Video server not responding:', error.message);
             return false;
         }
     }
 
-    // Connect to Vercel API (always available)
+    // Connect to video processing server
     async startFlaskServer() {
         try {
-            this.showConversionProgress('Connecting to video conversion API...');
+            this.showConversionProgress('Connecting to video conversion server...');
 
-            // Check if Vercel API is available
+            // Check if video server is available
             const serverStarted = await this.checkFlaskServer();
 
             if (!serverStarted) {
-                throw new Error('Vercel API is not responding');
+                throw new Error('Video processing server is not responding');
             }
 
             this.showConversionProgress('API connected successfully!');
@@ -1442,11 +1440,11 @@ For now, you can use PNG Sequence export instead.`);
     // Check Flask server status and update button
     async checkServerStatusAndUpdateButton() {
         try {
-            // First check Vercel API health
+            // First check video server health
             const expressHealth = await this.checkExpressServer();
             if (!expressHealth) {
-                this.updateVideoButtonStatus(false, '(API Unavailable)');
-                this.showServerStatus('Vercel API not responding', 'error');
+                this.updateVideoButtonStatus(false, '(Server Unavailable)');
+                this.showServerStatus('Video server not responding', 'error');
                 return;
             }
 
@@ -1468,13 +1466,13 @@ For now, you can use PNG Sequence export instead.`);
         }
     }
 
-    // Check Vercel API health
+    // Check video server health
     async checkExpressServer() {
         try {
             const response = await fetch('/api/flask-status');
             return response.ok;
         } catch (error) {
-            console.warn('Vercel API health check failed:', error);
+            console.warn('Video server health check failed:', error);
             return false;
         }
     }
