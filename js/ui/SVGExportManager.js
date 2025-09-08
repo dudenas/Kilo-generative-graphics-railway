@@ -759,8 +759,9 @@ Click OK to start server, or Cancel to use PNG Sequence export instead.`);
 
             // Give upload a moment to start, then begin progress monitoring
             setTimeout(() => {
+                this.showConversionProgress('Upload complete. Processing video...', 10);
                 this.monitorServerProgress();
-            }, 500);
+            }, 2000);
 
             // Wait for upload/conversion to complete
             const uploadResponse = await uploadPromise;
@@ -809,15 +810,18 @@ Click OK to start server, or Cancel to use PNG Sequence export instead.`);
             let progress = 0;
             let lastProgress = 0;
             let stuckCounter = 0;
+            let totalTimeouts = 0;
+            const maxTimeouts = 300; // 5 minutes maximum
 
             console.log('Starting progress monitoring...');
 
             while (progress < 100) {
-                const response = await fetch('/api/progress');
-                if (response.ok) {
-                    const data = await response.json();
-                    progress = data.progress;
-                    console.log('Progress update:', progress);
+                try {
+                    const response = await fetch('/api/progress');
+                    if (response.ok) {
+                        const data = await response.json();
+                        progress = data.progress;
+                        console.log('Progress update:', progress);
 
                     if (progress > 0) {
                         // Show progress with percentage
@@ -842,9 +846,22 @@ Click OK to start server, or Cancel to use PNG Sequence export instead.`);
                         stuckCounter = 0;
                     }
                     lastProgress = progress;
+                    } else {
+                        console.warn('Progress API returned error:', response.status);
+                        // Continue trying - server might be busy
+                    }
+                } catch (fetchError) {
+                    console.warn('Progress fetch error:', fetchError.message);
+                    // Continue trying - network might be temporarily unavailable
                 }
 
                 if (progress < 100) {
+                    totalTimeouts++;
+                    if (totalTimeouts >= maxTimeouts) {
+                        console.warn('Progress monitoring timeout reached (5 minutes), stopping...');
+                        this.showConversionProgress('Processing is taking longer than expected...', 90);
+                        break;
+                    }
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
