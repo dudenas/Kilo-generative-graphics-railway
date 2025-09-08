@@ -245,10 +245,16 @@ def get_progress():
 
 @app.route('/api/convert', methods=['POST'])
 def convert():
-    if 'files[]' not in request.files:
-        return jsonify({'error': 'No files provided'}), 400
-    
-    files = request.files.getlist('files[]')
+    try:
+        logger.info("=== Video conversion request received ===")
+        logger.info(f"Request content length: {request.content_length}")
+        
+        if 'files[]' not in request.files:
+            logger.error("No files provided in request")
+            return jsonify({'error': 'No files provided'}), 400
+        
+        files = request.files.getlist('files[]')
+        logger.info(f"Received {len(files)} files for conversion")
     format = request.form.get('format', 'mp4')
     
     if not files:

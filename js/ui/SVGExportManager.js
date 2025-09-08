@@ -460,7 +460,11 @@ Click OK to start server, or Cancel to use PNG Sequence export instead.`);
 
         // Get loop duration from current animation length setting
         console.log(`Checking noiseConfig:`, window.noiseConfig);
-        const totalFrames = window.noiseConfig ? window.noiseConfig.loopDuration : 300;
+        const configuredFrames = window.noiseConfig ? window.noiseConfig.loopDuration : 300;
+        // TESTING: Limit to 30 frames (1 second) to test upload/processing
+        const totalFrames = 30;
+        console.log(`🧪 TESTING MODE: Using ${totalFrames} frames instead of ${configuredFrames} for debugging`);
+        
         const animSpeed = window.noiseConfig ? window.noiseConfig.animationSpeed : 1.0;
         const framerate = 30;
         const duration = totalFrames / framerate;
@@ -764,7 +768,9 @@ Click OK to start server, or Cancel to use PNG Sequence export instead.`);
             }, 2000);
 
             // Wait for upload/conversion to complete
+            console.log('Waiting for upload/conversion to complete...');
             const uploadResponse = await uploadPromise;
+            console.log('Upload response received:', uploadResponse.ok, uploadResponse.status);
 
             if (!uploadResponse.ok) {
                 const errorData = await uploadResponse.json();
@@ -867,7 +873,7 @@ Click OK to start server, or Cancel to use PNG Sequence export instead.`);
                         this.showConversionProgress('Video processing complete', 100);
                         break;
                     }
-                    
+
                     // If progress API consistently fails, assume completion after reasonable time
                     if (totalTimeouts >= 60 && progress === 0) { // 1 minute of failed API calls
                         console.log('Progress API failing consistently, assuming video is processing...');
