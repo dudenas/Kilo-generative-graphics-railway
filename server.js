@@ -76,7 +76,7 @@ app.post('/stop-flask', (req, res) => {
 });
 
 // Check Flask server status
-app.get('/flask-status', async (req, res) => {
+app.get('/api/flask-status', async (req, res) => {
     try {
         const response = await fetch(`http://localhost:${FLASK_PORT}/api/`, {
             signal: AbortSignal.timeout(2000)
@@ -153,7 +153,7 @@ function startFlaskServer() {
 }
 
 // Proxy endpoints for Flask server
-app.get('/progress', async (req, res) => {
+app.get('/api/progress', async (req, res) => {
     try {
         console.log('Checking progress from Flask server...');
         const response = await fetch(`http://localhost:${FLASK_PORT}/api/progress`, {
@@ -194,7 +194,7 @@ app.get('/progress', async (req, res) => {
     }
 });
 
-app.post('/convert', async (req, res) => {
+app.post('/api/convert', async (req, res) => {
     try {
         console.log('Proxying video conversion request to Flask server...');
 

@@ -17,7 +17,7 @@ RUN npm install
 # Copy Flask server
 COPY flask-server /app/flask-server
 WORKDIR /app/flask-server
-RUN pip3 install -r requirements.txt
+RUN pip3 install --break-system-packages -r requirements.txt
 
 # Copy frontend files
 WORKDIR /app
