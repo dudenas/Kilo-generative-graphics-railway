@@ -1,16 +1,16 @@
 # Multi-stage Dockerfile for KILO Graphics Generator
-FROM node:18-alpine as frontend
+FROM node:18 as frontend
 
-# Install system dependencies for Python, FFmpeg, and OpenCV
-RUN apk add --no-cache \
+# Install system dependencies for Python and FFmpeg
+RUN apt-get update && apt-get install -y \
     python3 \
-    py3-pip \
-    ffmpeg \
-    build-base \
+    python3-pip \
     python3-dev \
-    py3-opencv \
-    py3-numpy \
-    py3-pillow
+    ffmpeg \
+    build-essential \
+    libopencv-dev \
+    python3-opencv \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN npm install
 # Copy Flask server
 COPY flask-server /app/flask-server
 WORKDIR /app/flask-server
-RUN pip3 install --break-system-packages -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # Copy frontend files
 WORKDIR /app
