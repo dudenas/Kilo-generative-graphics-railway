@@ -1,6 +1,4 @@
 import os
-import cv2
-import numpy as np
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
