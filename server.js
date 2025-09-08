@@ -79,7 +79,7 @@ app.post('/stop-flask', (req, res) => {
 app.get('/api/flask-status', async (req, res) => {
     try {
         const response = await fetch(`http://localhost:${FLASK_PORT}/api/`, {
-            signal: AbortSignal.timeout(2000)
+            signal: AbortSignal.timeout(5000)
         });
         res.json({
             running: response.ok
@@ -111,21 +111,27 @@ function startFlaskServer() {
 
             // Start Flask server with more robust Python detection
             let pythonCmd = 'python3';
-            
+
             // Try to find Python
             try {
-                const { execSync } = require('child_process');
-                execSync('python3 --version', { stdio: 'pipe' });
+                const {
+                    execSync
+                } = require('child_process');
+                execSync('python3 --version', {
+                    stdio: 'pipe'
+                });
                 pythonCmd = 'python3';
             } catch (e) {
                 try {
-                    execSync('python --version', { stdio: 'pipe' });
+                    execSync('python --version', {
+                        stdio: 'pipe'
+                    });
                     pythonCmd = 'python';
                 } catch (e2) {
                     throw new Error('Python not found. Please install Python 3.');
                 }
             }
-            
+
             console.log(`Using Python command: ${pythonCmd}`);
 
             flaskProcess = spawn(pythonCmd, [appPath], {
@@ -175,7 +181,7 @@ app.get('/api/progress', async (req, res) => {
     try {
         console.log('Checking progress from Flask server...');
         const response = await fetch(`http://localhost:${FLASK_PORT}/api/progress`, {
-            signal: AbortSignal.timeout(5000) // 5 second timeout
+            signal: AbortSignal.timeout(20000) // 20s to allow work
         });
 
         if (!response.ok) {
@@ -307,7 +313,7 @@ app.listen(PORT, () => {
             setTimeout(async () => {
                 try {
                     const testResponse = await fetch(`http://localhost:${FLASK_PORT}/api/`, {
-                        signal: AbortSignal.timeout(3000)
+                        signal: AbortSignal.timeout(5000)
                     });
                     if (testResponse.ok) {
                         console.log('✅ Flask server verified working');

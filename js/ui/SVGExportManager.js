@@ -464,7 +464,7 @@ Click OK to start server, or Cancel to use PNG Sequence export instead.`);
         // TESTING: Limit to 30 frames (1 second) to test upload/processing
         const totalFrames = 30;
         console.log(`🧪 TESTING MODE: Using ${totalFrames} frames instead of ${configuredFrames} for debugging`);
-        
+
         const animSpeed = window.noiseConfig ? window.noiseConfig.animationSpeed : 1.0;
         const framerate = 30;
         const duration = totalFrames / framerate;

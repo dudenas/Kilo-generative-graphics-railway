@@ -350,4 +350,5 @@ if __name__ == '__main__':
     logger.info(f"Temp directory: {app.config['TEMP_FOLDER']}")
     logger.info("=====================================")
     
-    app.run(host='0.0.0.0', port=port, debug=debug) 
+    # Enable threading so /api/progress can respond while /api/convert runs
+    app.run(host='0.0.0.0', port=port, debug=debug, threaded=True, use_reloader=False)
