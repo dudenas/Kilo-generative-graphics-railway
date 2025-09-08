@@ -1,13 +1,16 @@
 # Multi-stage Dockerfile for KILO Graphics Generator
 FROM node:18-alpine as frontend
 
-# Install system dependencies for Python and FFmpeg
+# Install system dependencies for Python, FFmpeg, and OpenCV
 RUN apk add --no-cache \
     python3 \
     py3-pip \
     ffmpeg \
     build-base \
-    python3-dev
+    python3-dev \
+    py3-opencv \
+    py3-numpy \
+    py3-pillow
 
 WORKDIR /app
 
